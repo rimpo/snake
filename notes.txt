@@ -1,0 +1,9 @@
+ToDo:
+- snake collision with itself.
+- refacotr- presskey, apple collsiion code.
+- fix apple collision 
+- FPS 
+- control speed of snake
+- Fix boundaries
+- snake dead condition
+- add score panel
