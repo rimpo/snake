@@ -17,31 +17,38 @@ type world struct {
 	a         *apple
 	bounds    pixel.Rect
 	winBounds pixel.Rect
+	cfg       pixelgl.WindowConfig
+	win       *pixelgl.Window
 }
 
-func (w *world) init() {
-	w.s = &snake{
-		length: 100.0,
-		width:  20.0,
-		speed:  10.0,
-		color:  colornames.Limegreen,
+func (w *world) init(title string) {
+	w.cfg = pixelgl.WindowConfig{
+		Title:  title,
+		Bounds: w.winBounds,
+		//VSync:  true,
 	}
-	w.s.direction = pixel.V(0.0, w.s.speed)
-
-	w.a = &apple{
-		pos: pixel.V(
-			float64(random(int(w.bounds.Min.X), int(w.bounds.Max.X))),
-			float64(random(int(w.bounds.Min.Y), int(w.bounds.Max.Y))),
-		),
-		dead: false,
+	var err error
+	w.win, err = pixelgl.NewWindow(w.cfg)
+	if err != nil {
+		panic(err)
 	}
 
 	w.s.initPos(pixel.V(100, 100), pixel.V(200, 100))
 }
 
+func (w *world) clear() {
+	w.win.Clear(colornames.Green)
+}
+
 func (w *world) draw(win pixel.Target) {
-	w.s.draw(win)
-	w.a.draw(win)
+	w.s.draw(w.win)
+	w.a.draw(w.win)
+
+	w.win.Update()
+}
+
+func (w *world) isEnded() bool {
+	return w.win.Closed()
 }
 
 func (w *world) isWallCollision() bool {
@@ -51,18 +58,23 @@ func (w *world) isWallCollision() bool {
 }
 
 func (w *world) processKeys(win *pixelgl.Window) {
-	if win.Pressed(pixelgl.KeyLeft) {
+	if win.JustPressed(pixelgl.KeyLeft) {
 		w.s.turnLeft()
 	}
-	if win.Pressed(pixelgl.KeyRight) {
+	if win.JustPressed(pixelgl.KeyRight) {
 		w.s.turnRight()
 	}
-	if win.Pressed(pixelgl.KeyDown) {
+	if win.JustPressed(pixelgl.KeyDown) {
 		w.s.turnDown()
 	}
-	if win.Pressed(pixelgl.KeyUp) {
+	if win.JustPressed(pixelgl.KeyUp) {
 		w.s.turnUp()
 	}
+
+}
+
+func (w *world) move(delay float64) {
+	//w.s.constSpeed = delay * 500
 	if !w.isWallCollision() {
 		w.s.move()
 	} else {
@@ -81,10 +93,14 @@ func (w *world) processKeys(win *pixelgl.Window) {
 
 	if w.a.isCollision(w.s.pos[0]) {
 		w.s.length += 50.0
+		w.s.constSpeed += w.s.constSpeed * 0.1
+		w.s.speed += w.s.constSpeed * delay
+
 		w.a.pos = pixel.V(
 			float64(random(int(w.bounds.Min.X), int(w.bounds.Max.X))),
 			float64(random(int(w.bounds.Min.Y), int(w.bounds.Max.Y))),
 		)
 		w.a.dead = false
 	}
+	w.s.prevDirection = w.s.direction
 }

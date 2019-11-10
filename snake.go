@@ -7,12 +7,14 @@ import (
 )
 
 type snake struct {
-	length    float64
-	width     float64
-	speed     float64
-	color     color.RGBA
-	direction pixel.Vec
-	pos       []pixel.Vec //start position,turn position, and end position
+	length        float64
+	width         float64
+	speed         float64
+	color         color.RGBA
+	direction     pixel.Vec
+	prevDirection pixel.Vec
+	pos           []pixel.Vec //start position,turn position, and end position
+	constSpeed    float64
 }
 
 func (s *snake) draw(t pixel.Target) {
@@ -68,7 +70,11 @@ func (s *snake) moveTo(pos pixel.Vec) {
 
 func (s *snake) move() {
 	//prepend a new co-ordinate
-	s.pos = append([]pixel.Vec{s.pos[0].Add(s.direction)}, s.pos...)
+	if s.direction == s.prevDirection {
+		s.pos[0] = s.pos[0].Add(s.direction)
+	} else {
+		s.pos = append([]pixel.Vec{s.pos[0].Add(s.direction)}, s.pos...)
+	}
 
 	var prev, p pixel.Vec
 	total := 0.0

@@ -1,7 +1,7 @@
 package main
 
 import (
-	//	"fmt"
+	"fmt"
 	"math/rand"
 	"time"
 
@@ -16,32 +16,72 @@ func run() {
 	w := &world{
 		bounds:    pixel.R(10, 10, 1014, 758),
 		winBounds: pixel.R(0, 0, 1024, 768),
+		s: &snake{
+			length:     100.0,
+			width:      20.0,
+			speed:      0.5,
+			color:      colornames.Limegreen,
+			direction:  pixel.V(0.0, 10.0),
+			constSpeed: 10.0,
+		},
 	}
 
-	w.init()
+	w.init("Snake 1.1")
 
-	cfg := pixelgl.WindowConfig{
-		Title:  "Snake 1.0",
-		Bounds: w.winBounds,
-		VSync:  true,
-	}
-	win, err := pixelgl.NewWindow(cfg)
-	if err != nil {
-		panic(err)
-	}
+	w.a = createApple(w.bounds)
 
-	for !win.Closed() {
-		win.Clear(colornames.Green)
+	var (
+		frames = 0
+		second = time.Tick(time.Second)
+	)
 
-		w.processKeys(win)
+	last := time.Now()
 
-		w.draw(win)
-		win.Update()
+	for !w.isEnded() {
 
-		time.Sleep(50 * time.Millisecond)
+		dt := time.Since(last).Seconds()
+		last = time.Now()
+
+		w.clear()
+
+		w.processKeys(w.win)
+
+		w.move(dt)
+
+		w.draw(w.win)
+
+		frames++
+		select {
+		case <-second:
+			w.win.SetTitle(fmt.Sprintf("%s | FPS:%d | len:%d | speed:%v", w.cfg.Title, frames, len(w.s.pos), w.s.speed))
+			frames = 0
+		default:
+		}
 	}
 }
 
 func main() {
 	pixelgl.Run(run)
 }
+
+/*
+
+while() {
+
+	if player.KeyPress() {
+		snake.OnKeyPress(key)
+	}
+
+
+	if snake.HasEaten(apple) {
+		snake.OnEaten(apple)
+		createRandomApple()
+	}
+
+	snake.Move()
+
+	clear()
+	draw(game, 60)
+}
+
+*/
