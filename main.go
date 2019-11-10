@@ -7,7 +7,6 @@ import (
 
 	"github.com/faiface/pixel"
 	"github.com/faiface/pixel/pixelgl"
-	"golang.org/x/image/colornames"
 )
 
 func run() {
@@ -16,19 +15,16 @@ func run() {
 	w := &world{
 		bounds:    pixel.R(10, 10, 1014, 758),
 		winBounds: pixel.R(0, 0, 1024, 768),
-		s: &snake{
-			length:     100.0,
-			width:      20.0,
-			speed:      0.5,
-			color:      colornames.Limegreen,
-			direction:  pixel.V(0.0, 10.0),
-			constSpeed: 10.0,
-		},
+		title:     "Snake 1.1",
 	}
 
-	w.init("Snake 1.1")
-
 	w.a = createApple(w.bounds)
+	w.s = createSnake()
+
+	w.objs = append(w.objs, w.a)
+	w.objs = append(w.objs, w.s)
+
+	w.init()
 
 	var (
 		frames = 0
@@ -44,11 +40,11 @@ func run() {
 
 		w.clear()
 
-		w.processKeys(w.win)
+		w.processKeys()
 
 		w.move(dt)
 
-		w.draw(w.win)
+		w.draw()
 
 		frames++
 		select {

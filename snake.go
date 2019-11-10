@@ -3,6 +3,8 @@ package main
 import (
 	"github.com/faiface/pixel"
 	"github.com/faiface/pixel/imdraw"
+	"github.com/faiface/pixel/pixelgl"
+	"golang.org/x/image/colornames"
 	"image/color"
 )
 
@@ -17,7 +19,18 @@ type snake struct {
 	constSpeed    float64
 }
 
-func (s *snake) draw(t pixel.Target) {
+func createSnake() *snake {
+	return &snake{
+		length:     100.0,
+		width:      20.0,
+		speed:      0.5,
+		color:      colornames.Limegreen,
+		direction:  pixel.V(0.0, 10.0),
+		constSpeed: 10.0,
+	}
+}
+
+func (s *snake) Draw(t pixel.Target) {
 	imd := imdraw.New(nil)
 	imd.EndShape = imdraw.RoundEndShape
 	imd.Color = s.color
@@ -37,6 +50,19 @@ func (s *snake) draw(t pixel.Target) {
 func (s *snake) initPos(pos ...pixel.Vec) {
 	for _, p := range pos {
 		s.pos = append(s.pos, p)
+	}
+}
+
+func (s *snake) OnKeyPress(btn pixelgl.Button) {
+	switch btn {
+	case pixelgl.KeyLeft:
+		s.turnLeft()
+	case pixelgl.KeyRight:
+		s.turnRight()
+	case pixelgl.KeyDown:
+		s.turnDown()
+	case pixelgl.KeyUp:
+		s.turnUp()
 	}
 }
 

@@ -12,6 +12,14 @@ func random(min, max int) int {
 	return rand.Intn(max-min) + min
 }
 
+type Object interface {
+	Draw(t pixel.Target)
+	OnKeyPress(btn pixelgl.Button)
+}
+
+type KeyPress interface {
+}
+
 type world struct {
 	s         *snake
 	a         *apple
@@ -19,11 +27,13 @@ type world struct {
 	winBounds pixel.Rect
 	cfg       pixelgl.WindowConfig
 	win       *pixelgl.Window
+	title     string
+	objs      []Object
 }
 
-func (w *world) init(title string) {
+func (w *world) init() {
 	w.cfg = pixelgl.WindowConfig{
-		Title:  title,
+		Title:  w.title,
 		Bounds: w.winBounds,
 		//VSync:  true,
 	}
@@ -40,10 +50,10 @@ func (w *world) clear() {
 	w.win.Clear(colornames.Green)
 }
 
-func (w *world) draw(win pixel.Target) {
-	w.s.draw(w.win)
-	w.a.draw(w.win)
-
+func (w *world) draw() {
+	for i, _ := range w.objs {
+		w.objs[i].Draw(w.win)
+	}
 	w.win.Update()
 }
 
@@ -57,20 +67,20 @@ func (w *world) isWallCollision() bool {
 	return !w.bounds.Contains(newHeadPos)
 }
 
-func (w *world) processKeys(win *pixelgl.Window) {
-	if win.JustPressed(pixelgl.KeyLeft) {
-		w.s.turnLeft()
+func (w *world) processKeys() {
+	var btn pixelgl.Button
+	if w.win.JustPressed(pixelgl.KeyLeft) {
+		btn = pixelgl.KeyLeft
+	} else if w.win.JustPressed(pixelgl.KeyRight) {
+		btn = pixelgl.KeyRight
+	} else if w.win.JustPressed(pixelgl.KeyDown) {
+		btn = pixelgl.KeyDown
+	} else if w.win.JustPressed(pixelgl.KeyUp) {
+		btn = pixelgl.KeyUp
 	}
-	if win.JustPressed(pixelgl.KeyRight) {
-		w.s.turnRight()
+	for i, _ := range w.objs {
+		w.objs[i].OnKeyPress(btn)
 	}
-	if win.JustPressed(pixelgl.KeyDown) {
-		w.s.turnDown()
-	}
-	if win.JustPressed(pixelgl.KeyUp) {
-		w.s.turnUp()
-	}
-
 }
 
 func (w *world) move(delay float64) {
