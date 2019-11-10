@@ -30,6 +30,12 @@ func createSnake() *snake {
 	}
 }
 
+func (s *snake) initPos(pos ...pixel.Vec) {
+	for _, p := range pos {
+		s.pos = append(s.pos, p)
+	}
+}
+
 func (s *snake) Draw(t pixel.Target) {
 	imd := imdraw.New(nil)
 	imd.EndShape = imdraw.RoundEndShape
@@ -47,12 +53,6 @@ func (s *snake) Draw(t pixel.Target) {
 	imd.Draw(t)
 }
 
-func (s *snake) initPos(pos ...pixel.Vec) {
-	for _, p := range pos {
-		s.pos = append(s.pos, p)
-	}
-}
-
 func (s *snake) OnKeyPress(btn pixelgl.Button) {
 	switch btn {
 	case pixelgl.KeyLeft:
@@ -64,6 +64,16 @@ func (s *snake) OnKeyPress(btn pixelgl.Button) {
 	case pixelgl.KeyUp:
 		s.turnUp()
 	}
+}
+
+func (s *snake) IsCollidingWith(obj *Object) bool {
+	return false
+}
+
+func (s *snake) OnCollision(obj *Object) {
+}
+
+func (s *snake) Move() {
 }
 
 func (s *snake) turnLeft() {
@@ -90,16 +100,20 @@ func (s *snake) turnUp() {
 	}
 }
 
+func (s *snake) head() pixel.Vec {
+	return s.pos[0]
+}
+
 func (s *snake) moveTo(pos pixel.Vec) {
 	s.pos = append([]pixel.Vec{pos}, s.pos...)
 }
 
-func (s *snake) move() {
+func (s *snake) move(delay float64) {
 	//prepend a new co-ordinate
 	if s.direction == s.prevDirection {
-		s.pos[0] = s.pos[0].Add(s.direction)
+		s.pos[0] = s.pos[0].Add(s.direction.Scaled(delay))
 	} else {
-		s.pos = append([]pixel.Vec{s.pos[0].Add(s.direction)}, s.pos...)
+		s.pos = append([]pixel.Vec{s.pos[0].Add(s.direction.Scaled(delay))}, s.pos...)
 	}
 
 	var prev, p pixel.Vec

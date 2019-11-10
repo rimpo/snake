@@ -13,16 +13,18 @@ func run() {
 	rand.Seed(time.Now().Unix())
 
 	w := &world{
-		bounds:    pixel.R(10, 10, 1014, 758),
 		winBounds: pixel.R(0, 0, 1024, 768),
 		title:     "Snake 1.1",
 	}
 
-	w.a = createApple(w.bounds)
 	w.s = createSnake()
+	w.wall = createWall(pixel.R(50, 50, 974, 718))
+	w.a = createApple(w.wall.bounds)
 
-	w.objs = append(w.objs, w.a)
-	w.objs = append(w.objs, w.s)
+	w.objects = append(w.objects, w.a)
+	w.objects = append(w.objects, w.wall)
+
+	w.moveableObjs = append(w.moveableObjs, w.s)
 
 	w.init()
 
@@ -32,17 +34,18 @@ func run() {
 	)
 
 	last := time.Now()
-
 	for !w.isEnded() {
-
-		dt := time.Since(last).Seconds()
+		//calculate delta to control FPS1000ms/60
+		dt := time.Since(last)
 		last = time.Now()
+		time.Sleep(time.Duration(16666*time.Microsecond) - dt)
+		delta := dt.Seconds() * 500
 
 		w.clear()
 
 		w.processKeys()
 
-		w.move(dt)
+		w.move(delta)
 
 		w.draw()
 
@@ -59,25 +62,3 @@ func run() {
 func main() {
 	pixelgl.Run(run)
 }
-
-/*
-
-while() {
-
-	if player.KeyPress() {
-		snake.OnKeyPress(key)
-	}
-
-
-	if snake.HasEaten(apple) {
-		snake.OnEaten(apple)
-		createRandomApple()
-	}
-
-	snake.Move()
-
-	clear()
-	draw(game, 60)
-}
-
-*/

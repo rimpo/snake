@@ -3,7 +3,6 @@ package main
 import (
 	"github.com/faiface/pixel"
 	"github.com/faiface/pixel/imdraw"
-	"github.com/faiface/pixel/pixelgl"
 	"golang.org/x/image/colornames"
 	//"image/color"
 )
@@ -23,10 +22,6 @@ func (a *apple) Draw(t pixel.Target) {
 	imd.Draw(t)
 }
 
-func (a *apple) OnKeyPress(btn pixelgl.Button) {
-	//Do nothing
-}
-
 func createApple(bounds pixel.Rect) *apple {
 	return &apple{
 		pos: pixel.V(
@@ -38,7 +33,7 @@ func createApple(bounds pixel.Rect) *apple {
 	}
 }
 
-func (a *apple) isCollision(pos pixel.Vec) bool {
+func (a *apple) IsInside(pos pixel.Vec) bool {
 	if !a.dead && pos.To(a.pos).Len() <= a.radius {
 		a.dead = true
 		return true
