@@ -17,15 +17,15 @@ type Object interface {
 }
 
 type CollisionObject interface {
-	IsCollidingWith(*Object) bool
-	OnCollision(*Object)
+	IsCollidingWith(Object, float64) bool
+	OnCollision(Object)
 }
 
 type MoveableObject interface {
 	Object
 	CollisionObject
-	Move()
-	OnKeyPress(btn pixelgl.Button)
+	Move(float64)
+	OnKeyPress(pixelgl.Button)
 }
 
 type world struct {
@@ -52,7 +52,7 @@ func (w *world) init() {
 		panic(err)
 	}
 
-	w.s.initPos(pixel.V(100, 100), pixel.V(200, 100))
+	w.s.initPos(pixel.V(100, 100), pixel.V(200, 100), pixel.V(200, 200))
 }
 
 func (w *world) clear() {
@@ -74,12 +74,6 @@ func (w *world) isEnded() bool {
 	return w.win.Closed()
 }
 
-func (w *world) isWallCollision() bool {
-	newHeadPos := w.s.pos[0].Add(w.s.direction)
-
-	return !w.wall.bounds.Contains(newHeadPos)
-}
-
 func (w *world) processKeys() {
 	var btn pixelgl.Button
 	if w.win.JustPressed(pixelgl.KeyLeft) {
@@ -96,51 +90,16 @@ func (w *world) processKeys() {
 	}
 }
 
-func (w *world) move(delay float64) {
-	/*
-		for i, _ := range w.moveableObjs {
-			w.moveableObjs[i].Move()
-		}
+func (w *world) move(delta float64) {
 
-		//handle collision
-		for i, _ := range w.moveableObjs {
-				for j, _ := range w.objects {
-					if w.objects[j].IsInside(w.moveableObjs[i]) {
-						w.moveableObjs[i].OnCollision(w.objects[j])
-					}
-				}
-
+	//check and handle if moveable object collide
+	for i, _ := range w.moveableObjs {
+		for j, _ := range w.objects {
+			if w.moveableObjs[i].IsCollidingWith(w.objects[j], delta) {
+				w.moveableObjs[i].OnCollision(w.objects[j])
+			}
 		}
-
-	*/
-	//w.s.constSpeed = delay * 500
-	if !w.isWallCollision() {
-		w.s.move(delay)
-	} else {
-		//snake dead
-		if w.s.pos[0].X < w.wall.bounds.Min.X {
-			w.s.pos[0].X = w.wall.bounds.Min.X
-		} else if w.s.pos[0].X > w.wall.bounds.Max.X {
-			w.s.pos[0].X = w.wall.bounds.Max.X
-		}
-		if w.s.pos[0].Y < w.wall.bounds.Min.Y {
-			w.s.pos[0].Y = w.wall.bounds.Min.Y
-		} else if w.s.pos[0].Y > w.wall.bounds.Max.Y {
-			w.s.pos[0].Y = w.wall.bounds.Max.Y
-		}
-		w.s.move(delay)
+		w.moveableObjs[i].Move(delta)
 	}
 
-	if w.a.IsInside(w.s.pos[0]) {
-		w.s.length += 50.0
-		w.s.constSpeed += w.s.constSpeed * 0.1
-		//w.s.speed += w.s.constSpeed * delay
-
-		w.a.pos = pixel.V(
-			float64(random(int(w.wall.bounds.Min.X), int(w.wall.bounds.Max.X))),
-			float64(random(int(w.wall.bounds.Min.Y), int(w.wall.bounds.Max.Y))),
-		)
-		w.a.dead = false
-	}
-	w.s.prevDirection = w.s.direction
 }
